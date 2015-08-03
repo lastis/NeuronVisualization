@@ -52,23 +52,31 @@ function drawNeuron(data) {
         Math.pow(dy,2) + 
         Math.pow(dz,2)
         ); 
-
+      dx = dx/2;
+      dy = dy/2;
+      dz = dz/2;
       var x = data[indx].x;
       var y = data[indx].y;
       var z = data[indx].z;
       var x2 = data[indx+1].x;
       var y2 = data[indx+1].y;
       var z2 = data[indx+1].z;
-      var zAngle = Math.atan2(dx,dy);
-      var yAngle = Math.atan2(dz,dx);
+      var xAngle = Math.atan2(Math.sqrt(dx*dx+dz*dz),dy);
+      var yAngle = Math.atan2(dx,dz);
+      if (indx == 0) {
+        console.log(dx);
+        console.log(dy);
+        console.log(dz);
+        console.log(xAngle/2/Math.PI*360);
+        console.log(yAngle/2/Math.PI*360);
+      }
 
       var cylinderGeo = new THREE.CylinderGeometry(r1,r2,len,8,1,false);
       var cylinder = new THREE.Mesh(cylinderGeo,material);
-      cylinder.position.set(x+dx/2,y+dy/2,z+dz/2);
-//       cylinder.position.set(x,y,z);
-      cylinder.rotation.z = -zAngle + Math.PI;
-//       cylinder.rotation.x = Math.PI/4;
-      cylinder.rotation.y = -yAngle;
+      cylinder.position.set(x+dx,y+dy,z+dz);
+      rotateAroundWorldAxis(cylinder,xAxis,xAngle+Math.PI);
+      rotateAroundWorldAxis(cylinder,yAxis,yAngle);
+
       cylinder.updateMatrix();
       mergedGeometry.merge(cylinder.geometry,cylinder.matrix);
 
@@ -88,12 +96,15 @@ function drawNeuron(data) {
     indx++;
   }
   var merged = new THREE.Mesh(mergedGeometry,material);
-//   merged.rotation.z = -1.7*Math.PI/4;
   scene.add(merged);
 
   var axisHelper = new THREE.AxisHelper(20);
   axisHelper.position.x = -50;
   scene.add(axisHelper);
+
+  //   merged.rotation.z = -1.7*Math.PI/4;
+//   merged.rotation.x = Math.PI/2;
+//   axisHelper.rotation.x = Math.PI/2;
 
   var angularSpeed = 0.01;
   var lastTime = 0;
@@ -111,8 +122,9 @@ function drawNeuron(data) {
     var time = (new Date()).getTime();
     var timeDiff = time - lastTime;
     var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
-    merged.rotation.x += angleChange;
+//     merged.rotation.x += angleChange;
 //     merged.rotation.y += angleChange;
+//     axisHelper.rotation.x += angleChange;
     lastTime = time;
 
     // render
