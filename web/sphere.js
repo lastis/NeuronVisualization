@@ -52,30 +52,43 @@ function drawNeuron(data) {
         Math.pow(dy,2) + 
         Math.pow(dz,2)
         ); 
-      var cylinderGeo = new THREE.CylinderGeometry(r1,r2,len,8,1,false);
-      var cylinder = new THREE.Mesh(cylinderGeo,material);
-      var yAngle = Math.atan2(dx,dz);
-      var xAngle = Math.atan2(Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2)),dy);
+
       var x = data[indx].x;
       var y = data[indx].y;
       var z = data[indx].z;
       var x2 = data[indx+1].x;
       var y2 = data[indx+1].y;
       var z2 = data[indx+1].z;
-//       cylinder.rotateOnAxis(yAxis,yAngle);
-//       cylinder.rotateOnAxis(xAxis,xAngle);
-      rotateAroundObjectAxis(cylinder,yAxis,yAngle);
-      rotateAroundObjectAxis(cylinder,xAxis,xAngle);
-      cylinder.position.set(x,y+len/2,z);
-//       cylinder.up = xAxis;
-//       cylinder.lookAt(new THREE.Vector3(0,0,1));
+      var zAngle = Math.atan2(dx,dy);
+      var yAngle = Math.atan2(dz,dx);
+
+      var cylinderGeo = new THREE.CylinderGeometry(r1,r2,len,8,1,false);
+      var cylinder = new THREE.Mesh(cylinderGeo,material);
+      cylinder.position.set(x+dx/2,y+dy/2,z+dz/2);
+//       cylinder.position.set(x,y,z);
+      cylinder.rotation.z = -zAngle + Math.PI;
+//       cylinder.rotation.x = Math.PI/4;
+      cylinder.rotation.y = -yAngle;
       cylinder.updateMatrix();
       mergedGeometry.merge(cylinder.geometry,cylinder.matrix);
+
+      var sphereGeo = new THREE.SphereGeometry(r1);
+      var sphere = new THREE.Mesh(sphereGeo,material);
+      sphere.position.set(x,y,z);
+      sphere.updateMatrix();
+      mergedGeometry.merge(sphere.geometry,sphere.matrix);
+    }
+    if (r1 != 0 && r2 == 0) {
+      var sphereGeo = new THREE.SphereGeometry(r1);
+      var sphere = new THREE.Mesh(sphereGeo,material);
+      sphere.position.set(data[indx].x,data[indx].y,data[indx].z);
+      sphere.updateMatrix();
+      mergedGeometry.merge(sphere.geometry,sphere.matrix);
     }
     indx++;
   }
   var merged = new THREE.Mesh(mergedGeometry,material);
-  merged.rotation.z = -1.7*Math.PI/4;
+//   merged.rotation.z = -1.7*Math.PI/4;
   scene.add(merged);
 
   var axisHelper = new THREE.AxisHelper(20);
@@ -98,8 +111,8 @@ function drawNeuron(data) {
     var time = (new Date()).getTime();
     var timeDiff = time - lastTime;
     var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
-//         merged.rotation.x += angleChange;
-    merged.rotation.y += angleChange;
+    merged.rotation.x += angleChange;
+//     merged.rotation.y += angleChange;
     lastTime = time;
 
     // render
