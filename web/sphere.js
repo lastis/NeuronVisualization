@@ -64,13 +64,6 @@ function drawNeuron(data) {
       var z2 = data[indx+1].z;
       var xAngle = Math.atan2(Math.sqrt(dx*dx+dz*dz),dy);
       var yAngle = Math.atan2(dx,dz);
-      if (indx == 0) {
-        console.log(dx);
-        console.log(dy);
-        console.log(dz);
-        console.log(xAngle/2/Math.PI*360);
-        console.log(yAngle/2/Math.PI*360);
-      }
 
       var cylinderGeo = new THREE.CylinderGeometry(r1,r2,len,8,1,false);
       var cylinder = new THREE.Mesh(cylinderGeo,material);
