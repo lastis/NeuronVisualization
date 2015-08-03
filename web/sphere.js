@@ -27,7 +27,8 @@ function handleDragOver(evt) {
 function drawNeuron(data) {
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 3000 );
-  camera.position.z = 300;
+  camera.position.z = 700;
+  camera.position.y = 300;
 
   var renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
@@ -102,9 +103,8 @@ function drawNeuron(data) {
   axisHelper.position.x = -50;
   scene.add(axisHelper);
 
-  //   merged.rotation.z = -1.7*Math.PI/4;
-//   merged.rotation.x = Math.PI/2;
-//   axisHelper.rotation.x = Math.PI/2;
+  merged.rotation.z = -1.7*Math.PI/4;
+//   axisHelper.rotation.z = -1.7*Math.PI/4;
 
   var angularSpeed = 0.01;
   var lastTime = 0;
@@ -123,8 +123,9 @@ function drawNeuron(data) {
     var timeDiff = time - lastTime;
     var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
 //     merged.rotation.x += angleChange;
-//     merged.rotation.y += angleChange;
+    merged.rotation.y += angleChange;
 //     axisHelper.rotation.x += angleChange;
+    axisHelper.rotation.y += angleChange;
     lastTime = time;
 
     // render
