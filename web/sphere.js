@@ -27,8 +27,8 @@ function handleDragOver(evt) {
 function drawNeuron(data) {
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 3000 );
-  camera.position.z = 700;
-  camera.position.y = 300;
+  camera.position.z = 400;
+  camera.position.y = 000;
 
   var renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
@@ -108,6 +108,40 @@ function drawNeuron(data) {
   stats.domElement.style.left = '0px';
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
+
+//   var renderModel = new THREE.RenderPass( scene, camera );
+//   var effectBloom = new THREE.BloomPass( 3 );
+//   var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+
+//   effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+
+//   var width = window.innerWidth || 2;
+//   var height = window.innerHeight || 2;
+
+//   effectFXAA.uniforms[ 'resolution' ].value.set( 1 / width, 1 / height );
+
+//   effectCopy.renderToScreen = true;
+
+//   composer = new THREE.EffectComposer( renderer );
+
+//   composer.addPass( renderModel );
+//   composer.addPass( effectFXAA );
+//   composer.addPass( effectBloom );
+//   composer.addPass( effectCopy );
+
+  var loader = new THREE.JSONLoader();
+  var newmesh; 
+  var edges;
+  loader.load("potshape.js", function (geo){
+//     geo.computeFaceNormals();
+//     geo.computeVertexNormals();
+    console.log(geo.vertices);
+    newmesh = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
+    newmesh.scale.set(10,10,10);
+    edges = new THREE.EdgesHelper(newmesh, 0x00ff00 );
+    scene.add(edges);
+    scene.add(newmesh);
+  });
   
   function animate(){
     stats.begin();
@@ -115,14 +149,16 @@ function drawNeuron(data) {
     var time = (new Date()).getTime();
     var timeDiff = time - lastTime;
     var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
-//     merged.rotation.x += angleChange;
     merged.rotation.y += angleChange;
+//     newmesh.rotation.y += angleChangel;
+//     edges.rotation.y += angleChange;
 //     axisHelper.rotation.x += angleChange;
     axisHelper.rotation.y += angleChange;
     lastTime = time;
 
     // render
     renderer.render(scene, camera);
+//     composer.render();
 
     stats.end();
     // request new frame
