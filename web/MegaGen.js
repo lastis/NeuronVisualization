@@ -129,7 +129,7 @@ var megagen = (function() {
     
     if (animationRunning == false) {
       stats = new Stats();
-      stats.setMode(3);
+      stats.setMode(0);
       stats.domElement.style.position = 'absolute';
       stats.domElement.style.left = '0px';
       stats.domElement.style.top = '0px';
@@ -165,7 +165,6 @@ var megagen = (function() {
     if (index == contour_filenames.length-1) {
       index = 0;
     }
-    console.log('Loading : ' + dir+'/'+filename);
     loader.load(dir+'/'+filename, function (geo){
       scene.remove(contour);
       contour = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
