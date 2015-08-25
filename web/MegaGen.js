@@ -1,15 +1,23 @@
 var megagen = (function() {
 
+  var animationRunning = false;
   var scene;
   var camera;
   var renderer;
   var neuron;
+  var contour;
   var axisHelper;
   var stats;
   var lastTime = 0;
+  var dt_load = 100;
+  var dt_load_tmp = 0;
   var angularSpeed = 0.01;
   var neuronLoaded = false;
   var potentialLoaded = false;
+  var index = 0;
+  var contour_filenames = [];
+  var loader = new THREE.JSONLoader();
+  
 
   return {
     
@@ -17,20 +25,22 @@ var megagen = (function() {
       scene = new THREE.Scene();
 
       camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 3000 );
-      camera.position.z = 400;
+      camera.position.z = 1500;
       camera.position.y = 000;
+      camera.position.x = -100;
       
       renderer = new THREE.WebGLRenderer();
       renderer.setSize( window.innerWidth, window.innerHeight );
 
       document.body.appendChild( renderer.domElement );
 
-      loadNeuronMesh(draw);
+      loadNeuronMesh();
+      draw()
     }
 
   }
 
-  function loadNeuronMesh(callback) {
+  function loadNeuronMesh() {
     d3.csv('morph.csv', function(data){
       data.forEach(function(d) {
         d.x = +d.x;
@@ -79,54 +89,54 @@ var megagen = (function() {
           cylinder.updateMatrix();
           mergedGeometry.merge(cylinder.geometry,cylinder.matrix);
 
-          var sphereGeo = new THREE.SphereGeometry(r1);
-          var sphere = new THREE.Mesh(sphereGeo,material);
-          sphere.position.set(x,y,z);
-          sphere.updateMatrix();
-          mergedGeometry.merge(sphere.geometry,sphere.matrix);
+//           var sphereGeo = new THREE.SphereGeometry(r1);
+//           var sphere = new THREE.Mesh(sphereGeo,material);
+//           sphere.position.set(x,y,z);
+//           sphere.updateMatrix();
+//           mergedGeometry.merge(sphere.geometry,sphere.matrix);
         }
-        if (r1 != 0 && r2 == 0) {
-          var sphereGeo = new THREE.SphereGeometry(r1);
-          var sphere = new THREE.Mesh(sphereGeo,material);
-          sphere.position.set(data[indx].x,data[indx].y,data[indx].z);
-          sphere.updateMatrix();
-          mergedGeometry.merge(sphere.geometry,sphere.matrix);
-        }
+//         if (r1 != 0 && r2 == 0) {
+//           var sphereGeo = new THREE.SphereGeometry(r1);
+//           var sphere = new THREE.Mesh(sphereGeo,material);
+//           sphere.position.set(data[indx].x,data[indx].y,data[indx].z);
+//           sphere.updateMatrix();
+//           mergedGeometry.merge(sphere.geometry,sphere.matrix);
+//         }
         indx++;
       }
       neuron = new THREE.Mesh(mergedGeometry,material);
 
       axisHelper = new THREE.AxisHelper(20);
-      axisHelper.position.x = -50;
-      neuron.rotation.z = -1.7*Math.PI/4;
-
-      callback();
+      neuronLoaded = true;
+      draw();
     });
   }
 
   function draw(){
-    scene.add(neuron);
-    scene.add(axisHelper);
-
-    stats = new Stats();
-    stats.setMode(1);
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
-    document.body.appendChild(stats.domElement);
-
-//     var loader = new THREE.JSONLoader();
-//     var newmesh; 
-//     var edges;
-//     loader.load("potshape.js", function (geo){
-//       console.log(geo.vertices);
-//       newmesh = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
-//       newmesh.scale.set(10,10,10);
-//       edges = new THREE.EdgesHelper(newmesh, 0x00ff00 );
-//       scene.add(edges);
-//       scene.add(newmesh);
-//     });
-    requestAnimationFrame(animate);
+    if (neuronLoaded) {
+//       neuron.rotation.z = -1.7*Math.PI/4;
+      scene.add(neuron);     
+      axisHelper.position.x = -50;
+      scene.add(axisHelper);
+    }
+    
+    if (potentialLoaded == false) {
+      var json = $.getJSON('contour/config.js', function(json){
+        contour_filenames = json.filenames;
+        potentialLoaded = true;
+      });
+    }
+    
+    if (animationRunning == false) {
+      stats = new Stats();
+      stats.setMode(3);
+      stats.domElement.style.position = 'absolute';
+      stats.domElement.style.left = '0px';
+      stats.domElement.style.top = '0px';
+      document.body.appendChild(stats.domElement);
+      animationRunning = true;
+      requestAnimationFrame(animate);
+    }
   }
 
   function animate(){
@@ -134,9 +144,14 @@ var megagen = (function() {
     // update
     var time = (new Date()).getTime();
     var timeDiff = time - lastTime;
+    dt_load_tmp = dt_load_tmp + timeDiff;
+    if (dt_load_tmp >= dt_load) {
+      dt_load_tmp = 0;
+      loadContourFromFolder('contour');
+    }
     var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
-    neuron.rotation.y += angleChange;
-    axisHelper.rotation.y += angleChange;
+//     neuron.rotation.y += angleChange;
+//     axisHelper.rotation.y += angleChange;
     lastTime = time;
 
     renderer.render(scene, camera);
@@ -145,12 +160,24 @@ var megagen = (function() {
     requestAnimationFrame(animate);
   }
 
+  function loadContourFromFolder(dir) {
+    var filename = contour_filenames[index];
+    if (index == contour_filenames.length-1) {
+      index = 0;
+    }
+    loader.load(dir+'/'+filename, function (geo){
+      scene.remove(contour);
+      contour = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
+      scene.add(contour);
+    });
+    index++;
+  }
+
   function loadPotentialMesh(callback) {
 
   }
 
 })();
-
 
 function rotateAroundObjectAxis(object, axis, radians) {
     var rotObjectMatrix = new THREE.Matrix4();

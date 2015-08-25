@@ -1,6 +1,7 @@
 import LFPy
 from pylab import *
 from skimage import measure
+from meshgen import *
 
 cellParameters = {
     'morphology' : 'morphologies/L5_Mainen96_LFPy.hoc',
@@ -19,34 +20,14 @@ synapseParameters = {
     'record_current' : True,
 }
 
-Z = np.arange(-400,1201,200)
-X = np.arange(-200,201,100)
-Y = np.arange(-200,201,100)
+nx = 10
+ny = 10
+nz = 10
+x = np.linspace(-200,200,nx)
+y = np.linspace(-200,200,ny)
+z = np.linspace(-400,1200,nz)
 
-z = zeros(Z.size*Y.size*X.size)
-y = zeros(Z.size*Y.size*X.size)
-x = zeros(Z.size*Y.size*X.size)
-
-cnt = 0
-for i in xrange(Z.size) :
-    for j in xrange(Y.size) :
-        for k in xrange(X.size) :
-            x[cnt] = X[k]
-            y[cnt] = Y[j]
-            z[cnt] = Z[i]
-            cnt += 1
-
-# z = Z
-# x = zeros(Z.size)
-# y = zeros(Z.size)
-
-
-electrodeParameters = {
-    'x' : x,
-    'y' : y,
-    'z' : z,
-    'sigma' : 0.3,
-}
+electrodeParameters = getElectrodeParameters(x,y,z)
 
 cell = LFPy.Cell(**cellParameters)
 cell.set_pos(xpos=-10, ypos=0, zpos=0)
@@ -61,46 +42,39 @@ electrode = LFPy.RecExtElectrode(**electrodeParameters)
 
 cell.simulate(electrode = electrode, rec_isyn=True)
 
-figure(figsize=(12, 6))
-subplot(133)
-pcolormesh(cell.tvec, electrode.z, electrode.LFP,
-           vmin=-abs(electrode.LFP).max(), vmax=abs(electrode.LFP).max(),
-           cmap='spectral_r'), colorbar(), title('LFP (mV)')
-subplot(232)
-plot(cell.tvec, synapse.i), title('synaptic current (pA)')
-subplot(235)
-plot(cell.tvec, cell.somav), title('somatic voltage (mV)')
-subplot(131)
-for sec in LFPy.cell.neuron.h.allsec():
-    idx = cell.get_idx(sec.name())
-    plot(np.r_[cell.xstart[idx], cell.xend[idx][-1]],
-            np.r_[cell.zstart[idx], cell.zend[idx][-1]],
-            color='k')
-plot([cell.synapses[0].x], [cell.synapses[0].z], \
-     color=cell.synapses[0].color, marker=cell.synapses[0].marker, markersize=10)
-plot(electrode.x, electrode.z, '.', marker='o', color='g')
-axis([-500, 500, -400, 1200])
+# figure(figsize=(12, 6))
+# subplot(133)
+# pcolormesh(cell.tvec, electrode.z, electrode.LFP,
+#            vmin=-abs(electrode.LFP).max(), vmax=abs(electrode.LFP).max(),
+#            cmap='spectral_r'), colorbar(), title('LFP (mV)')
+# subplot(232)
+# plot(cell.tvec, synapse.i), title('synaptic current (pA)')
+# subplot(235)
+# plot(cell.tvec, cell.somav), title('somatic voltage (mV)')
+# subplot(131)
+# for sec in LFPy.cell.neuron.h.allsec():
+#     idx = cell.get_idx(sec.name())
+#     plot(np.r_[cell.xstart[idx], cell.xend[idx][-1]],
+#             np.r_[cell.zstart[idx], cell.zend[idx][-1]],
+#             color='k')
+# plot([cell.synapses[0].x], [cell.synapses[0].z], \
+#      color=cell.synapses[0].color, marker=cell.synapses[0].marker, markersize=10)
+# plot(electrode.x, electrode.z, '.', marker='o', color='g')
+# axis([-500, 500, -400, 1200])
+# show()
 
-print electrode.z.size
+print "LFP Shape:"
 print electrode.LFP.shape
 
-grid = zeros([X.size,Y.size,Z.size]);
-cnt = 0
-for i in xrange(Z.size) :
-    for j in xrange(Y.size) :
-        for k in xrange(X.size) :
-            if electrode.LFP[cnt,11] == 0.0 : 
-                cnt += 1
-                continue
-            print elextrode.LFP[cnt,11]
-            grid[i,j,k] = 1
-            cnt += 1
 
-# verts, faces = measure.marching_cubes(grid, 1)
-# print verts
+writeContoursToJson(electrode.LFP,x,y,z,file_prefix='potential', \
+    directory='web/contour')
+# verts, faces = getContour(electrode.LFP,x,y,z)
+# meshToJson(verts,faces);
 
-# np.savetxt("web/potentials.csv", electrode.LFP, delimiter=',')
 
-#savefig('LFPy-example-2.pdf', dpi=300)
 
-show()
+
+
+
+
