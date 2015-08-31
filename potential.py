@@ -5,8 +5,8 @@ from meshgen import *
 
 cellParameters = {
     'morphology' : 'morphologies/L5_Mainen96_LFPy.hoc',
-    'timeres_NEURON' : 1,
-    'timeres_python' : 1,
+    # 'timeres_NEURON' : 1,
+    # 'timeres_python' : 1,
     'tstartms' : -50,
     'tstopms' : 100,
 }
@@ -34,7 +34,7 @@ cell.set_pos(xpos=-10, ypos=0, zpos=0)
 cell.set_rotation(z=np.pi)
 
 synapse = LFPy.Synapse(cell,
-                       idx = cell.get_closest_idx(z=800),
+                       idx = cell.get_closest_idx(z=0),
                        **synapseParameters)
 synapse.set_spike_times(array([10, 30, 50]))
                         

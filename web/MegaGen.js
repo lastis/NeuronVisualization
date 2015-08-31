@@ -123,7 +123,6 @@ var megagen = (function() {
     if (potentialLoaded == false) {
       var json = $.getJSON('contour/config.js', function(json){
         contour_filenames = json.filenames;
-        potentialLoaded = true;
       });
     }
     
@@ -145,13 +144,18 @@ var megagen = (function() {
     var time = (new Date()).getTime();
     var timeDiff = time - lastTime;
     dt_load_tmp = dt_load_tmp + timeDiff;
+    var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
+    if (neuronLoaded) {
+      neuron.rotation.y += angleChange;
+      axisHelper.rotation.y += angleChange;
+      if (potentialLoaded) {
+        contour.rotation = neuron.rotation;
+      }
+    }
     if (dt_load_tmp >= dt_load) {
       dt_load_tmp = 0;
       loadContourFromFolder('contour');
     }
-    var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
-//     neuron.rotation.y += angleChange;
-//     axisHelper.rotation.y += angleChange;
     lastTime = time;
 
     renderer.render(scene, camera);
@@ -169,6 +173,7 @@ var megagen = (function() {
       scene.remove(contour);
       contour = new THREE.Mesh(geo, new THREE.MeshNormalMaterial());
       scene.add(contour);
+      potentialLoaded = true;
     });
     index++;
   }

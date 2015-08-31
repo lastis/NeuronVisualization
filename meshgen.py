@@ -17,14 +17,16 @@ def writeContoursToJson(LFP,x,y,z,file_prefix='potential',directory='contours'):
     frames = LFP.shape[1]
 
     filenames = [];
+    U_max_half = LFP.max()/2;
     for i in xrange(frames):
         U = LFP[:,i].reshape(nx,ny,nz)
-        UHalf = U.max()/2;
-        idx = (np.abs(U-UHalf)).argmin()
-        UHalf = U.flatten()[idx]
-        if UHalf == 0 :
+        idx = (np.abs(U-U_max_half)).argmin()
+        U_new = U.flatten()[idx]
+        if U_new == 0 :
             continue
-        verts, faces = measure.marching_cubes(U,UHalf,spacing=(dx,dy,dz))
+        verts, faces = measure.marching_cubes(U,U_new,spacing=(dx,dy,dz))
+        if len(verts) == 0:
+            continue
         verts[:,0] = verts[:,0] + x[0]
         verts[:,1] = verts[:,1] + y[0]
         verts[:,2] = verts[:,2] + z[0]
